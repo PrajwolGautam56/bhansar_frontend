@@ -13,7 +13,9 @@ export default function CompaniesPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(50);
-  const query = useMemo(() => `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`, [page, limit, search]);
+  const [sortBy, setSortBy] = useState('updatedAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const query = useMemo(() => `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&sortBy=${sortBy}&sortOrder=${sortOrder}`, [page, limit, search, sortBy, sortOrder]);
   const { data, refetch } = useCompanies(query);
   const { activeModal, openModal, closeModal } = useUiStore();
 
@@ -30,6 +32,26 @@ export default function CompaniesPage() {
     } catch {
       window.alert('Only admins can delete companies.');
     }
+  }
+
+  function sortHeading(field: string) {
+    if (sortBy === field) {
+      setSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setPage(1);
+  }
+
+  function SortButton({ field, label }: { field: string; label: string }) {
+    const active = sortBy === field;
+    return (
+      <button type="button" className={`inline-flex items-center gap-1 font-semibold ${active ? 'text-brand' : 'text-slate-500'}`} onClick={() => sortHeading(field)}>
+        {label}
+        <span className="text-[10px]">{active ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}</span>
+      </button>
+    );
   }
 
   return (
@@ -50,7 +72,18 @@ export default function CompaniesPage() {
         </div>
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
           <table>
-            <thead><tr><th>Company</th><th>EXIM</th><th>Products</th><th>Provider</th><th>Frequency</th><th>Status</th><th>Entry port</th><th /></tr></thead>
+            <thead>
+              <tr>
+                <th><SortButton field="name" label="Company" /></th>
+                <th><SortButton field="eximCode" label="EXIM" /></th>
+                <th>Products</th>
+                <th><SortButton field="currentServiceProvider" label="Provider" /></th>
+                <th><SortButton field="importFrequency" label="Frequency" /></th>
+                <th><SortButton field="status" label="Status" /></th>
+                <th><SortButton field="entryPort" label="Entry port" /></th>
+                <th />
+              </tr>
+            </thead>
             <tbody>
               {data?.items.map((company) => (
                 <tr key={company._id}>

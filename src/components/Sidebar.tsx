@@ -18,7 +18,7 @@ export function Sidebar() {
   const items = user?.role === 'ADMIN' ? [...nav, { href: '/users', label: 'Users', icon: Users }] : nav;
 
   return (
-    <aside className="md:flex md:h-screen md:w-[220px] md:shrink-0 md:flex-col md:border-r md:border-slate-200 md:bg-white">
+    <aside className="md:sticky md:top-0 md:flex md:h-screen md:w-[220px] md:shrink-0 md:flex-col md:border-r md:border-slate-200 md:bg-white">
       <div className="flex h-16 items-center gap-2 border-b border-slate-100 px-5 font-bold text-brand">
         <Package size={22} />
         Bhansar CRM
