@@ -1,6 +1,6 @@
 import { Phone } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../lib/axios';
 import { BadgeStatus } from '../components/BadgeStatus';
 import { AddCompanyModal } from '../components/AddCompanyModal';
@@ -173,6 +173,7 @@ function ContactEditor({
 
 export default function CompanyDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data, refetch } = useApi<{ company: Company; leads: Lead[]; contacts: Contact[]; callLogs: CallLog[] }>(`/companies/${id}`);
   const [callLead, setCallLead] = useState<Lead | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -244,9 +245,28 @@ export default function CompanyDetailPage() {
     }
   }
 
+  async function deleteCompany() {
+    if (!data?.company) return;
+    if (!window.confirm(`Delete ${data.company.name}? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/companies/${data.company._id}`);
+      navigate('/companies');
+    } catch {
+      window.alert('Only admins can delete companies.');
+    }
+  }
+
   return (
     <>
-      <TopBar title={data?.company.name || 'Company'} actions={<Button onClick={() => setIsEditing(true)}>Edit Company</Button>} />
+      <TopBar
+        title={data?.company.name || 'Company'}
+        actions={
+          <>
+            <Button onClick={() => setIsEditing(true)}>Edit Company</Button>
+            <Button className="bg-red-600 hover:bg-red-700" onClick={() => void deleteCompany()}>Delete Company</Button>
+          </>
+        }
+      />
       <div className="space-y-5 p-4 md:p-6">
         <section className="rounded-lg border border-slate-200 bg-white p-5">
           <div className="flex items-start justify-between">

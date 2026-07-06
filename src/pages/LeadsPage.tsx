@@ -7,6 +7,7 @@ import { LeadDetailPanel } from '../components/LeadDetailPanel';
 import { TopBar } from '../components/TopBar';
 import { Button } from '../components/ui/Button';
 import { useLeads } from '../hooks/useLeads';
+import api from '../lib/axios';
 import { dateLabel, dueColor } from '../lib/utils';
 import { useUiStore } from '../store/uiStore';
 
@@ -18,6 +19,17 @@ export default function LeadsPage() {
   const query = useMemo(() => `?stage=${stage}&search=${encodeURIComponent(search)}`, [stage, search]);
   const { data, refetch } = useLeads(query);
   const { activeModal, openModal, closeModal, selectedLeadId, openDetailPanel, closeDetailPanel } = useUiStore();
+
+  async function deleteLead(leadId: string, leadName: string) {
+    if (!window.confirm(`Delete ${leadName} and its follow-up history?`)) return;
+    try {
+      await api.delete(`/leads/${leadId}`);
+      if (selectedLeadId === leadId) closeDetailPanel();
+      void refetch();
+    } catch {
+      window.alert('Only admins can delete leads.');
+    }
+  }
 
   return (
     <>
@@ -36,7 +48,7 @@ export default function LeadsPage() {
         </div>
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
           <table>
-            <thead><tr><th>Name</th><th>Company</th><th>Import type</th><th>Stage</th><th>Last called</th><th>Next call</th><th>Agent</th><th>Remarks</th></tr></thead>
+            <thead><tr><th>Name</th><th>Company</th><th>Import type</th><th>Stage</th><th>Last called</th><th>Next call</th><th>Agent</th><th>Remarks</th><th /></tr></thead>
             <tbody>
               {data?.items.map((lead) => (
                 <tr key={lead._id} onClick={() => openDetailPanel(lead._id)} className="cursor-pointer hover:bg-slate-50">
@@ -48,6 +60,17 @@ export default function LeadsPage() {
                   <td className={dueColor(lead.nextCallDate)}>{dateLabel(lead.nextCallDate)}</td>
                   <td>{lead.assignedTo?.name || '-'}</td>
                   <td className="max-w-48 truncate">{lead.remarks || '-'}</td>
+                  <td>
+                    <button
+                      className="font-semibold text-red-600"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void deleteLead(lead._id, lead.fullName);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

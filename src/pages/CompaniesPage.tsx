@@ -1,6 +1,7 @@
 import { Plus, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
+import api from '../lib/axios';
 import { AddCompanyModal } from '../components/AddCompanyModal';
 import { BadgeStatus } from '../components/BadgeStatus';
 import { TopBar } from '../components/TopBar';
@@ -19,6 +20,16 @@ export default function CompaniesPage() {
   function updateSearch(value: string) {
     setSearch(value);
     setPage(1);
+  }
+
+  async function deleteCompany(companyId: string, companyName: string) {
+    if (!window.confirm(`Delete ${companyName}? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/companies/${companyId}`);
+      void refetch();
+    } catch {
+      window.alert('Only admins can delete companies.');
+    }
   }
 
   return (
@@ -57,7 +68,12 @@ export default function CompaniesPage() {
                   <td>{company.importFrequency || '-'}</td>
                   <td><BadgeStatus value={company.status} /></td>
                   <td>{company.entryPort || '-'}</td>
-                  <td><Link className="font-semibold text-brand" to={`/companies/${company._id}`}>View</Link></td>
+                  <td>
+                    <div className="flex gap-2">
+                      <Link className="font-semibold text-brand" to={`/companies/${company._id}`}>View</Link>
+                      <button className="font-semibold text-red-600" onClick={() => void deleteCompany(company._id, company.name)}>Delete</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
