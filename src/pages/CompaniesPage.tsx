@@ -16,11 +16,12 @@ export default function CompaniesPage() {
       <div className="p-4 md:p-6">
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
           <table>
-            <thead><tr><th>Company</th><th>Products</th><th>Provider</th><th>Frequency</th><th>Status</th><th>Entry port</th><th /></tr></thead>
+            <thead><tr><th>Company</th><th>EXIM</th><th>Products</th><th>Provider</th><th>Frequency</th><th>Status</th><th>Entry port</th><th /></tr></thead>
             <tbody>
               {data?.items.map((company) => (
                 <tr key={company._id}>
                   <td><p className="font-semibold">{company.name}</p><p className="text-xs text-slate-500">{company.location}, {company.district}</p></td>
+                  <td>{company.eximCode || '-'}</td>
                   <td>
                     {(company.importProductDetails?.length ? company.importProductDetails : company.importProducts?.map((name) => ({ name, hsCode: '' })))?.slice(0, 2).map((product) => (
                       <div key={`${company._id}-${product.name}`} className="text-sm">

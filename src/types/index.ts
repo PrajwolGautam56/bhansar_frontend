@@ -17,6 +17,7 @@ export interface Company {
   location?: string;
   district?: string;
   panNumber?: string;
+  eximCode?: string;
   importProducts?: string[];
   importProductDetails?: Array<{
     name: string;
@@ -25,6 +26,13 @@ export interface Company {
   importFrequency?: 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'IRREGULAR';
   entryPort?: string;
   currentServiceProvider?: string;
+  importTransactions?: Array<{
+    startDate?: string;
+    endDate?: string;
+    amount?: number;
+    currency?: string;
+    notes?: string;
+  }>;
   status?: 'LEAD' | 'INTERESTED' | 'ACTIVE_CLIENT' | 'INACTIVE';
   notes?: string;
   workingSince?: string;

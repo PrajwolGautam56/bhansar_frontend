@@ -17,6 +17,37 @@ function dateInput(value?: string) {
   return value ? value.slice(0, 10) : '';
 }
 
+function money(value?: number, currency = 'NPR') {
+  if (!value) return `${currency} 0`;
+  return `${currency} ${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(value)}`;
+}
+
+function monthSpan(start?: string, end?: string) {
+  if (!start || !end) return 1;
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 + endDate.getMonth() - startDate.getMonth() + 1;
+  return Math.max(months, 1);
+}
+
+function transactionInsights(company?: Company) {
+  const transactions = company?.importTransactions || [];
+  const total = transactions.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const months = transactions.reduce((sum, item) => sum + monthSpan(item.startDate, item.endDate), 0) || 1;
+  const averageMonthly = total / months;
+  const sorted = [...transactions].sort((a, b) => String(b.endDate || b.startDate || '').localeCompare(String(a.endDate || a.startDate || '')));
+  const frequencyGuess = transactions.length >= months / 2 ? 'Frequent importer' : transactions.length >= 2 ? 'Occasional importer' : transactions.length === 1 ? 'Low visible activity' : 'No transaction data';
+
+  return {
+    transactions,
+    total,
+    averageMonthly,
+    latest: sorted[0],
+    currency: transactions[0]?.currency || 'NPR',
+    frequencyGuess
+  };
+}
+
 function LeadEditor({
   companyId,
   lead,
@@ -153,6 +184,7 @@ export default function CompanyDetailPage() {
     data?.company.importProductDetails?.length
       ? data.company.importProductDetails
       : data?.company.importProducts?.map((name) => ({ name, hsCode: '' }));
+  const insights = transactionInsights(data?.company);
 
   function openCallLogAfterDial(lead: Lead, startedAt: Date) {
     setCallLead(lead);
@@ -220,7 +252,7 @@ export default function CompanyDetailPage() {
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-xl font-semibold">{data?.company.name}</h2>
-              <p className="text-sm text-slate-500">{data?.company.location}, {data?.company.district} · PAN {data?.company.panNumber || '-'}</p>
+              <p className="text-sm text-slate-500">{data?.company.location}, {data?.company.district} · PAN {data?.company.panNumber || '-'} · EXIM {data?.company.eximCode || '-'}</p>
             </div>
             <BadgeStatus value={data?.company.status} />
           </div>
@@ -236,6 +268,24 @@ export default function CompanyDetailPage() {
             <div className="rounded-lg bg-slate-50 p-3">
               <p className="text-xs font-semibold uppercase text-slate-500">Entry port</p>
               <p className="mt-1 text-sm font-medium">{data?.company.entryPort || '-'}</p>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-4">
+            <div className="rounded-lg bg-emerald-50 p-3">
+              <p className="text-xs font-semibold uppercase text-emerald-700">Total known import value</p>
+              <p className="mt-1 text-sm font-bold text-emerald-900">{money(insights.total, insights.currency)}</p>
+            </div>
+            <div className="rounded-lg bg-blue-50 p-3">
+              <p className="text-xs font-semibold uppercase text-blue-700">Avg monthly estimate</p>
+              <p className="mt-1 text-sm font-bold text-blue-900">{money(insights.averageMonthly, insights.currency)}</p>
+            </div>
+            <div className="rounded-lg bg-amber-50 p-3">
+              <p className="text-xs font-semibold uppercase text-amber-700">Frequency guess</p>
+              <p className="mt-1 text-sm font-bold text-amber-900">{insights.frequencyGuess}</p>
+            </div>
+            <div className="rounded-lg bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase text-slate-500">Latest transaction</p>
+              <p className="mt-1 text-sm font-medium">{insights.latest ? `${dateLabel(insights.latest.startDate)} - ${dateLabel(insights.latest.endDate)}` : '-'}</p>
             </div>
           </div>
           <div className="mt-5">
@@ -255,6 +305,24 @@ export default function CompanyDetailPage() {
             </div>
           </div>
           <p className="mt-3 text-sm text-slate-600">{data?.company.notes}</p>
+        </section>
+        <section className="rounded-lg border border-slate-200 bg-white">
+          <div className="border-b p-4 font-semibold">Import transaction data</div>
+          <div className="overflow-x-auto">
+            <table>
+              <thead><tr><th>Start date</th><th>End date</th><th>Amount</th><th>Notes</th></tr></thead>
+              <tbody>
+                {insights.transactions.length ? insights.transactions.map((transaction, index) => (
+                  <tr key={`${transaction.startDate}-${transaction.endDate}-${index}`}>
+                    <td>{dateLabel(transaction.startDate)}</td>
+                    <td>{dateLabel(transaction.endDate)}</td>
+                    <td>{money(transaction.amount, transaction.currency || insights.currency)}</td>
+                    <td>{transaction.notes || '-'}</td>
+                  </tr>
+                )) : <tr><td colSpan={4}>No transaction data added.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </section>
         <section className="rounded-lg border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b p-4">

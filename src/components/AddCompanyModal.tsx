@@ -31,9 +31,18 @@ interface ContactRow {
   notes: string;
 }
 
+interface TransactionRow {
+  startDate: string;
+  endDate: string;
+  amount: string;
+  currency: string;
+  notes: string;
+}
+
 const blankProduct = (): ProductRow => ({ name: '', hsCode: '' });
 const blankLead = (): LeadRow => ({ fullName: '', phone: '', email: '', designation: '', stage: 'NEW', nextCallDate: '', mutualPerson: '', assignedTo: '', remarks: '' });
 const blankContact = (): ContactRow => ({ fullName: '', phone: '', email: '', designation: '', relationType: 'LEAD_CONTACT', linkToCreatedLeads: false, notes: '' });
+const blankTransaction = (): TransactionRow => ({ startDate: '', endDate: '', amount: '', currency: 'NPR', notes: '' });
 
 function dateInput(value?: string) {
   return value ? value.slice(0, 10) : '';
@@ -59,6 +68,17 @@ export function AddCompanyModal({
   );
   const [leads, setLeads] = useState<LeadRow[]>([blankLead()]);
   const [contacts, setContacts] = useState<ContactRow[]>([blankContact()]);
+  const [transactions, setTransactions] = useState<TransactionRow[]>(
+    company?.importTransactions?.length
+      ? company.importTransactions.map((item) => ({
+          startDate: dateInput(item.startDate),
+          endDate: dateInput(item.endDate),
+          amount: item.amount ? String(item.amount) : '',
+          currency: item.currency || 'NPR',
+          notes: item.notes || ''
+        }))
+      : [blankTransaction()]
+  );
 
   useEffect(() => {
     void api.get<User[]>('/users').then((res) => setUsers(res.data)).catch(() => setUsers([]));
@@ -76,6 +96,10 @@ export function AddCompanyModal({
     setContacts((current) => current.map((contact, itemIndex) => (itemIndex === index ? { ...contact, ...patch } : contact)));
   }
 
+  function updateTransaction(index: number, patch: Partial<TransactionRow>) {
+    setTransactions((current) => current.map((transaction, itemIndex) => (itemIndex === index ? { ...transaction, ...patch } : transaction)));
+  }
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -85,11 +109,21 @@ export function AddCompanyModal({
       location: form.get('location'),
       district: form.get('district'),
       panNumber: form.get('panNumber'),
+      eximCode: form.get('eximCode'),
       importProducts: importProductDetails.map((item) => item.name),
       importProductDetails,
       importFrequency: form.get('importFrequency') || undefined,
       entryPort: form.get('entryPort'),
       currentServiceProvider: form.get('currentServiceProvider'),
+      importTransactions: transactions
+        .filter((transaction) => transaction.startDate || transaction.endDate || transaction.amount)
+        .map((transaction) => ({
+          startDate: transaction.startDate || undefined,
+          endDate: transaction.endDate || undefined,
+          amount: transaction.amount ? Number(transaction.amount) : undefined,
+          currency: transaction.currency || 'NPR',
+          notes: transaction.notes
+        })),
       status: form.get('status'),
       workingSince: form.get('workingSince') || undefined,
       notes: form.get('notes')
@@ -122,6 +156,7 @@ export function AddCompanyModal({
         <input name="location" placeholder="Location / City" defaultValue={company?.location} />
         <input name="district" placeholder="District" defaultValue={company?.district} />
         <input name="panNumber" placeholder="PAN / VAT number" defaultValue={company?.panNumber} />
+        <input name="eximCode" placeholder="EXIM code" defaultValue={company?.eximCode} />
 
         <div className="space-y-2 md:col-span-2">
           <div className="flex items-center justify-between">
@@ -158,6 +193,27 @@ export function AddCompanyModal({
         </select>
         <input name="workingSince" type="date" defaultValue={dateInput(company?.workingSince)} />
         <textarea name="notes" className="md:col-span-2" placeholder="Notes" defaultValue={company?.notes} />
+
+        <div className="space-y-2 md:col-span-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-slate-700">Import transaction history</label>
+            <button type="button" className="text-sm font-semibold text-brand" onClick={() => setTransactions((current) => [...current, blankTransaction()])}>
+              Add transaction
+            </button>
+          </div>
+          {transactions.map((transaction, index) => (
+            <div key={index} className="grid gap-2 rounded-md bg-slate-50 p-3 md:grid-cols-[150px_150px_1fr_100px_auto]">
+              <input value={transaction.startDate} onChange={(event) => updateTransaction(index, { startDate: event.target.value })} type="date" title="Start date" />
+              <input value={transaction.endDate} onChange={(event) => updateTransaction(index, { endDate: event.target.value })} type="date" title="End date" />
+              <input value={transaction.amount} onChange={(event) => updateTransaction(index, { amount: event.target.value })} type="number" min="0" step="0.01" placeholder="Transaction amount" />
+              <input value={transaction.currency} onChange={(event) => updateTransaction(index, { currency: event.target.value })} placeholder="Currency" />
+              <button type="button" className="rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200" onClick={() => setTransactions((current) => (current.length === 1 ? [blankTransaction()] : current.filter((_, itemIndex) => itemIndex !== index)))}>
+                Remove
+              </button>
+              <input className="md:col-span-5" value={transaction.notes} onChange={(event) => updateTransaction(index, { notes: event.target.value })} placeholder="Notes, source, or shipment detail" />
+            </div>
+          ))}
+        </div>
 
         {!isEdit && (
           <>
