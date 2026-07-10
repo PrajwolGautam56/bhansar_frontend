@@ -273,10 +273,21 @@ export default function CompanyDetailPage() {
             <div>
               <h2 className="text-xl font-semibold">{data?.company.name}</h2>
               <p className="text-sm text-slate-500">{data?.company.location}, {data?.company.district} · PAN {data?.company.panNumber || '-'} · EXIM {data?.company.eximCode || '-'}</p>
+              <p className="mt-1 text-sm text-slate-500">Owner: {data?.company.ownerName || '-'}</p>
             </div>
             <BadgeStatus value={data?.company.status} />
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="rounded-lg bg-emerald-50 p-3">
+              <p className="text-xs font-semibold uppercase text-emerald-700">Phone numbers</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {data?.company.phoneNumbers?.length ? data.company.phoneNumbers.map((phone) => (
+                  <a key={phone} className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-sm font-bold text-emerald-700" href={`tel:${phone}`}>
+                    <Phone size={14} /> {phone}
+                  </a>
+                )) : <span className="text-sm font-medium">-</span>}
+              </div>
+            </div>
             <div className="rounded-lg bg-slate-50 p-3">
               <p className="text-xs font-semibold uppercase text-slate-500">Current service provider</p>
               <p className="mt-1 text-sm font-medium">{data?.company.currentServiceProvider || '-'}</p>
@@ -288,6 +299,10 @@ export default function CompanyDetailPage() {
             <div className="rounded-lg bg-slate-50 p-3">
               <p className="text-xs font-semibold uppercase text-slate-500">Entry port</p>
               <p className="mt-1 text-sm font-medium">{data?.company.entryPort || '-'}</p>
+            </div>
+            <div className="rounded-lg bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase text-slate-500">Follow-up date</p>
+              <p className="mt-1 text-sm font-medium">{dateLabel(data?.company.followUpDate)}</p>
             </div>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-4">

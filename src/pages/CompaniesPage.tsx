@@ -1,4 +1,4 @@
-import { Plus, Search } from 'lucide-react';
+import { Phone, Plus, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import api from '../lib/axios';
@@ -76,6 +76,7 @@ export default function CompaniesPage() {
               <tr>
                 <th><SortButton field="name" label="Company" /></th>
                 <th><SortButton field="eximCode" label="EXIM" /></th>
+                <th>Phone</th>
                 <th>Products</th>
                 <th><SortButton field="currentServiceProvider" label="Provider" /></th>
                 <th><SortButton field="importFrequency" label="Frequency" /></th>
@@ -89,6 +90,13 @@ export default function CompaniesPage() {
                 <tr key={company._id}>
                   <td><p className="font-semibold">{company.name}</p><p className="text-xs text-slate-500">{company.location}, {company.district}</p></td>
                   <td>{company.eximCode || '-'}</td>
+                  <td>
+                    {company.phoneNumbers?.length ? (
+                      <a className="inline-flex items-center gap-1 font-semibold text-emerald-700" href={`tel:${company.phoneNumbers[0]}`}>
+                        <Phone size={14} /> {company.phoneNumbers[0]}
+                      </a>
+                    ) : '-'}
+                  </td>
                   <td>
                     {(company.importProductDetails?.length ? company.importProductDetails : company.importProducts?.map((name) => ({ name, hsCode: '' })))?.slice(0, 2).map((product) => (
                       <div key={`${company._id}-${product.name}`} className="text-sm">

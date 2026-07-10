@@ -18,6 +18,8 @@ export interface Company {
   district?: string;
   panNumber?: string;
   eximCode?: string;
+  phoneNumbers?: string[];
+  ownerName?: string;
   importProducts?: string[];
   importProductDetails?: Array<{
     name: string;
@@ -35,6 +37,7 @@ export interface Company {
   }>;
   status?: 'LEAD' | 'INTERESTED' | 'ACTIVE_CLIENT' | 'INACTIVE';
   notes?: string;
+  followUpDate?: string;
   workingSince?: string;
 }
 

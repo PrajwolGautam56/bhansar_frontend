@@ -110,6 +110,11 @@ export function AddCompanyModal({
       district: form.get('district'),
       panNumber: form.get('panNumber'),
       eximCode: form.get('eximCode'),
+      phoneNumbers: String(form.get('phoneNumbers') || '')
+        .split(/[,\n]/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+      ownerName: form.get('ownerName'),
       importProducts: importProductDetails.map((item) => item.name),
       importProductDetails,
       importFrequency: form.get('importFrequency') || undefined,
@@ -125,6 +130,7 @@ export function AddCompanyModal({
           notes: transaction.notes
         })),
       status: form.get('status'),
+      followUpDate: form.get('followUpDate') || undefined,
       workingSince: form.get('workingSince') || undefined,
       notes: form.get('notes')
     };
@@ -157,6 +163,8 @@ export function AddCompanyModal({
         <input name="district" placeholder="District" defaultValue={company?.district} />
         <input name="panNumber" placeholder="PAN / VAT number" defaultValue={company?.panNumber} />
         <input name="eximCode" placeholder="EXIM code" defaultValue={company?.eximCode} />
+        <input name="ownerName" placeholder="Owner / contact person" defaultValue={company?.ownerName} />
+        <input name="phoneNumbers" placeholder="Phone numbers, comma separated" defaultValue={company?.phoneNumbers?.join(', ')} />
 
         <div className="space-y-2 md:col-span-2">
           <div className="flex items-center justify-between">
@@ -191,6 +199,7 @@ export function AddCompanyModal({
           <option value="ACTIVE_CLIENT">Active client</option>
           <option value="INACTIVE">Inactive</option>
         </select>
+        <input name="followUpDate" type="date" defaultValue={dateInput(company?.followUpDate)} />
         <input name="workingSince" type="date" defaultValue={dateInput(company?.workingSince)} />
         <textarea name="notes" className="md:col-span-2" placeholder="Notes" defaultValue={company?.notes} />
 
