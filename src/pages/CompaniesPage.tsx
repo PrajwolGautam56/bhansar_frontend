@@ -13,9 +13,13 @@ export default function CompaniesPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(50);
+  const [phoneStatus, setPhoneStatus] = useState<'all' | 'with' | 'without'>('all');
   const [sortBy, setSortBy] = useState('updatedAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const query = useMemo(() => `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&sortBy=${sortBy}&sortOrder=${sortOrder}`, [page, limit, search, sortBy, sortOrder]);
+  const query = useMemo(
+    () => `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&sortBy=${sortBy}&sortOrder=${sortOrder}&phoneStatus=${phoneStatus}`,
+    [page, limit, search, sortBy, sortOrder, phoneStatus]
+  );
   const { data, refetch } = useCompanies(query);
   const { activeModal, openModal, closeModal } = useUiStore();
 
@@ -67,6 +71,11 @@ export default function CompaniesPage() {
             <option value={25}>25 / page</option>
             <option value={50}>50 / page</option>
             <option value={100}>100 / page</option>
+          </select>
+          <select value={phoneStatus} onChange={(event) => { setPhoneStatus(event.target.value as 'all' | 'with' | 'without'); setPage(1); }}>
+            <option value="all">All numbers</option>
+            <option value="with">With phone number</option>
+            <option value="without">Without phone number</option>
           </select>
           <p className="text-sm text-slate-500">{data?.total || 0} companies</p>
         </div>
